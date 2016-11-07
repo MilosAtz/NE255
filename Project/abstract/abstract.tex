@@ -1,0 +1,58 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+
+\usepackage{indentfirst}
+
+\usepackage{amsmath}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}				% Define tab command and spacing
+\renewcommand{\baselinestretch}{1.5}				% Define the line spacing
+\newcommand{\rpm}{\raisebox{.2ex}{$\scriptstyle\pm$}}	% Define +/- for math script
+\newcommand*\mean[1]{\overline{#1}}				% Define the bar over symbol to indicate mean
+
+\title{NE255 Project Abstract}
+\author{Milos Atz}
+\date{October 25, 2016}							
+
+% math syntax for NTE Equation (from R. Slaybaugh NE155 tex notes)
+\newcommand{\nth}{n\ensuremath{^{\text{th}}} }
+\newcommand{\ve}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\Macro}{\ensuremath{\Sigma}}
+\newcommand{\rvec}{\ensuremath{\vec{r}}}
+\newcommand{\omvec}{\ensuremath{\hat{\Omega}}}
+\newcommand{\vOmega}{\ensuremath{\hat{\Omega}}}
+
+\begin{document}
+
+\maketitle
+
+One of the potential project topics is to write a 2-D transport solver for slab geometry with some combination of vacuum and reflecting boundaries. As a modification to this project, I propose to write a 1D transport solver for a spherical geometry in curvilinear coordinates with fully reflecting boundary conditions. This project is inspired by my current research; I use MCNP for criticality calculations for spherical, homogeneous mixtures of fissile material, rock, and water to understand the criticality risk of geologic nuclear waste disposal. To compensate for the fact that I am reducing the spatial dimensionality of the problem, I'd like to incorporate a few additional degrees of complexity. I'd like to incorporate multi-group energy discretization and include the option to solve for a criticality eigenvalue.
+
+Major steps to execute the project and associated deadlines are outlined below. However, I am very open to discussion and recommendations about steps/tasks and timeline required to succeed.
+
+\begin{enumerate}
+\item{Determine general form of the applied math
+	\begin{itemize}
+	\item{Curvilinear spatial and angular discretization}
+	\item{Energy discretization: group structure and cross section values}
+	\item{inclusion of criticality eigenvalue}
+	\item{source/fission neutron distributions}
+	\end{itemize}
+	I imagine that this will take approximately a week or two (done by 11/7/2016).}
+\item{Implement the above in code
+	\begin{itemize}
+	\item{Linear algebra and solvers}
+	\item{Unit tests}
+	\end{itemize}
+	This might take a little longer, but should follow directly from the above. This will be the bulk of the work and should be done by the end of November (11/30/2016)}
+\item{Test the code against MCNP
+	This should be fairly straight forward. I already have MCNP set up to do these criticality calculations, so comparing that aspect of the result should be straightforward. I'll define some test cases and compare the results for both the eigenvalue and flux shape. This will be done in time for the report and presentation due dates (12/14/2016).}
+\end{enumerate}
+
+\end{document}
