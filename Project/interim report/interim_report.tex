@@ -1,0 +1,146 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+								% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+
+\usepackage{indentfirst}
+
+\usepackage{amsmath}
+
+\newcommand\tab[1][1cm]{\hspace*{#1}}				% Define tab command and spacing
+\renewcommand{\baselinestretch}{1.5}				% Define the line spacing
+\newcommand{\rpm}{\raisebox{.2ex}{$\scriptstyle\pm$}}	% Define +/- for math script
+\newcommand*\mean[1]{\overline{#1}}				% Define the bar over symbol to indicate mean
+
+\title{NE255 Interim Report}
+\author{Milos Atz}
+\date{November 15, 2016}							
+
+% math syntax for NTE Equation (from R. Slaybaugh NE155 tex notes)
+\newcommand{\nth}{n\ensuremath{^{\text{th}}} }
+\newcommand{\ve}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\Macro}{\ensuremath{\Sigma}}
+\newcommand{\rvec}{\ensuremath{\vec{r}}}
+\newcommand{\omvec}{\ensuremath{\hat{\Omega}}}
+\newcommand{\vOmega}{\ensuremath{\hat{\Omega}}}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+For a geologic repository containing fissile materials, a criticality safety assessment (CSA) is necessary to ensure subcriticality. The CSA should cover (1) the canister environment, (2) the near field, which includes the engineered barriers, and (3) the far field, where fissile material from multiple canisters can accumulate in geologic formations after canister failure and subsurface transport \cite{ahn1}. The far field case is complicated by long timescales and uncertainties regarding material compositions and geometry. One way to assess the far-field criticality risk is by using conservative neutronic analysis alongside deterministic transport models \cite{ahn1}. Understanding how the multiplication factor and critical mass of a deposition of fissile material behave under variable conditions can allow insights into improving fuel cycle management, waste processing, and repository design.
+
+In previous work, criticality calculations have been carried out using MCNP v.6.1 \cite{xudong} \cite{mcnp}. While MCNP can produce good estimates of the multiplication factor, the calculations are expensive. A deterministic model can give results more quickly than MCNP. At the very least, this can be used to validate findings in MCNP. If expanded with an extensive data library, it could grow into more. In this work, a 1-D transport solver for a spherical geometry in curvilinear coordinates with fully reflecting boundary conditions is developed. This model represents a water-saturated deposition of fissile material in host rock.
+
+% with an option to solve for a criticality eigenvalue.
+
+\section{Mathematics}
+
+Using curvilinear coordinates in the discrete ordinates method allows for straightforward treatment of spherical systems. The geometry can be considered 1-D. In 1-D curvilinear coordinates, the angular flux, $\psi(\rho, \mu)$ is dependent on only $\rho$, the distance from the origin, and $\mu$, the directional cosine of $\hat{\Omega}$ with respect to the radial direction at $\rho$. The conservation form of the transport equation in spherical geometry is given as follows, where $q$ is this emission density \cite{lm}:
+\newline
+\begin{equation}\label{eq:conste}
+	\frac{\mu}{\rho^2}\frac{\partial}{\partial\rho}\rho^2\psi(\rho, \mu)+
+	\frac{1}{\rho}\frac{\partial}{\partial\mu}(1-\mu^2)\psi(\rho, \mu)+
+	\sigma(\rho)\psi(\rho, \mu) = 
+	q(\rho, \mu)
+\end{equation}
+\begin{equation}
+q(\rho, \mu) = \sum_{l=0}^{L}(2l+1)\sigma_l(\rho)P_l(\mu)\phi_l(\rho)+s(\rho, \mu)
+\end{equation}
+\newline
+$\phi_l$ are the Legendre moments of the angular flux. In discrete ordinates, angle and space must be discretized, and curvilinear coordinates is no exception. However, the discretization is different than for Cartesian coordinates. In the following sections, the discretization in angle and space will be outlined. This material is sourced entirely from the book by Lewis and Miller \cite{lm}.
+
+\subsection{Angular Discretization}
+
+In curvilinear coordinates, we can consider discretized angle as a set of discrete ordinates equations, analogous to the treatment in slab geometry. We evaluate the equation at the same $\mu_n$ as in the slab geometry. However, because the equations in curvilinear coordinates are different, this procedure can no longer be considered as tracing neutrons along discrete paths through space. If we want to utilize widely used quadrature sets (e.g. Gauss and double Gauss quadrature), the angular redistribution effects caused by curvilinear coordinates must be taken into account. This can be achieved by introducing angular differencing coefficients into the conservation form of the transport equation in spherical geometry in Equation (\ref{eq:conste}). Here, $n$ represents an angle from the quadrature set, and $\psi_n(\rho) = \psi(\rho, \mu_n)$ for $\mu_1 < \mu_2 < \dots < \mu_N$ with $\mu_{1/2} \equiv 1$ and $\mu_{N+1/2} = 1$.
+\newline
+\begin{equation}\label{eq:conste_angdiff}
+\frac{\mu_n}{\rho^2}\frac{\partial}{\partial\rho}\rho^2\psi_n(\rho)+
+\frac{2}{\rho w_n}\left[\alpha_{n+1/2}\psi_{n+1/2}(\rho)-\alpha_{n-1/2}\psi_{n-1/2}(\rho)\right]+
+\sigma(\rho)\psi_n(\rho) = 
+q_n(\rho)
+\end{equation}
+\newline
+The value of $\alpha_{1/2}$ must be determined; if $\alpha_{1/2}$ is known, all  $\alpha_{n+1/2}$ can be determined uniquely in terms of quadrature parameters. We specify that the above must obey the neutron balance condition, which is shown by integrating Equation (\ref{eq:conste}), where $\phi$ is the scalar flux, $S$ is the source, $J$ is the current, and $\sigma_r = \sigma - \sigma_0$.
+\newline
+\begin{equation}\label{eq:nbal}
+\frac{1}{\rho^2}\frac{\partial}{\partial\rho}\rho^2J(\rho)+
+\sigma_r(\rho)\phi(\rho)=
+S(\rho)
+\end{equation}
+\newline
+For this to be true, $\alpha_{1/2}\psi_{1/2}(\rho)-\alpha_{N+1/2}\psi_{N+1/2}(\rho)=0$. Any quadrature set that is even in $\mu$ will produce $\alpha_{N+1/2}=0$ if $\alpha_{1/2}=0$, thus satisfying the condition. We can create a set of coupled equations using diamond differencing in angle. Solving $\psi_n(\rho)=\frac{1}{2}\left[\psi_{n+1/2}(\rho)+\psi_{n-1/2}(\rho)\right]$ for $\psi_{n+1/2}$ and substituting into equation (\ref{eq:conste_angdiff}) gives the following:
+\newline
+\begin{equation}\label{eq:ddte}
+\frac{\mu_n}{\rho^2}\frac{\partial}{\partial\rho}\rho^2\psi_n(\rho)+
+\frac{2}{\rho w_n}\left[2\alpha_{n+1/2}\psi_{n}(\rho)-(\alpha_{n+1/2}+\alpha_{n-1/2})\psi_{n-1/2}(\rho)\right]+
+\sigma(\rho)\psi_n(\rho) = 
+q_n(\rho)
+\end{equation}
+\newline
+The diamond difference relationship and Equation (\ref{eq:ddte}) together can be solved successively for $\psi_1, \psi_{3/2}, \psi_2, \dots, \psi_N$. To find $\psi_{1/2}$, $\mu_{1/2}=1$ is defined as the radially inward direction.
+
+\subsection{Spatial Discretization}
+
+As in Cartesian spatial differencing, finite volume method is used to discretize space. Equation (\ref{eq:ddte}) is first integrated over incremental volume $V_i$ with spherical shell surface area $A_i$ and a differencing relationship is applied. The mesh is radial and defined in terms of $\rho$ and cross sections are assumed constant in each region. The equations required to sweep through the spatial mesh are as follows for $\mu \lessgtr 0$.
+\newline
+\begin{equation}
+\psi_{n,i \mp 1/2}=2\psi_{ni} - \psi_{n,i \pm 1/2} 
+\end{equation}
+
+\begin{equation}\label{eq:spatialdd}
+\psi_ni = \frac{\left| \mu_n \right| \left(A_{i+1/2}-A_{i-1/2}\right)\psi_{n,i \pm 1/2}+
+\frac{2}{w_n}\left(A_{i+1/2}-A_{i-1/2}\right)\left(\alpha_{n+1/2}-\alpha_{n-1/2}\right)\psi_{n-1/2,i}+V_i Q_{ni}}
+{2\left| \mu_n \right| A_{i \mp 1/2} + \frac{4}{w_n}\left(A_{i+1/2}-A_{i-1/2}\right)\alpha_{n+1/2}+V_i\sigma_i}
+\end{equation}
+\newline
+The starting direction is approximated by the following, which is solved for $\psi_{1/2,i}$ and plugged into Equation (\ref{eq:spatialdd}).
+\newline
+\begin{equation}
+-\frac{\left(\psi_{1/2, i+1/2} - \psi_{1/2, i-1/2}\right)}{\rho_{i+1/2}-\rho_{i-1/2}}+\sigma_i\psi_{1/2,i}=Q_{ni}
+\end{equation}
+\newline
+The symmetry at the center of the sphere (in this case, the origin) is most often approximated by $\psi_{N+1-n, 1/2} = \psi_{n,1/2}$ for $n=1, 2, \dots, N/2$. However, due to truncation error, a small nonphysical dip in spatial flux can occur at the origin. To improve accuracy numerically, the condition that is actually implemented is $\psi_{n-1/2, 1/2} = \psi_{n+1/2, 1/2}$ for $n=1, 2, \dots, N$. The starting direction calculation determines $\psi_{1/2, 1/2}$ at the origin.
+
+\section{Algorithms}
+
+The space-angle sweep in curvilinear coordinates is similar to that in Cartesian coordinates. In spherical geometry, the starting angle is radially inward, $\mu = -1$ and starting spatial mesh cell is the outermost cell. Starting with $\psi_{1/2, I+1/2}$, the march proceeds inward (decreasing $i$), sequentially solving for each $\psi_{1/2, i}$. Then, the $\psi_{1,i}$ are calculated, and so on until all angular fluxes for $\mu_n<0$, ($n \leq N/2$) are known.
+
+Then, the starting fluxes at $i=1/2$ for $n > N/2$ are determined and the process is repeated, except this time with $\mu > 0$. These fluxes are combined according to the quadrature with the fluxes from the inward sweep and are used to update the scattering source for the next iteration.
+
+\section{Plans for Completion}
+
+As of now, I've not implemented any code. As such, there's some really low-hanging fruit for me to address. I propose the following steps.
+
+\begin{enumerate}
+\item Determine the type of quadrature and code the functions for quadrature and integration.
+\item Write the subroutine to sweep through spatial mesh (DD)
+\item Write the subroutine to sweep through angle - this is a level above the spatial sweep.
+\item Inner iteration subroutine: compute the source term, call the subroutine that sweeps through space/angle, and check for convergence.
+\end{enumerate}
+
+All of these things should be relatively straightforward, especially because we implemented some similar algorithms in HW4. I'm going to try to add a criticality eigenvalue to this model, but I have not formulated that mathematically nor have I studied the algorithm to implement it in code (although I don't think it should be too difficult, based on our discussions in class).
+
+When all of this is done, I can do the "cleanup" - diversifying and expanding capabilities by having a neat input file and subroutines to check and process input data, implementing a version data subroutine, etc. This will give me a finished product that I hope I can test against MCNP results using effective cross section data tallied from MCNP.
+
+\begin{thebibliography}{1}
+
+  \bibitem{ahn1} Joonhong Ahn. {\em Criticality Safety of Geologic Disposal for High-Level Radioactive Wastes} 2006: Nuclear Engineering and Technology v38:6.
+
+  \bibitem{xudong} Xudong Liu, Joonhong Ahn, Fumio Hirano. {\em Conditions for criticality by uranium deposition in water-saturated geological formations} 2014: Journal of Nuclear Science and Technology v.52
+   
+   \bibitem{mcnp} D.B. Pelowitz, ed. {\em MCNP6TM User?s Manual} 2011, Los Alamos.
+   
+   \bibitem{lm} E.E. Lewis and W.F. Miller. {\em Computational Methods of Neutron Transport} 1984: John Wiley \& Sons.
+   
+\end{thebibliography}
+
+
+
+\end{document}
