@@ -97,11 +97,11 @@ The treatment of angle in curvilinear coordinates is tricky. Angular differencin
 There are three terms in Equation \ref{eq:spatialdd}, each divided by the same denominator (the first line). The first term represents particles incoming from the preceding cell in space $i \pm 1/2$ into the current cell $i$. The second term represents particles incoming from the previous half-angle $n-1/2$ into the current angle $n$. The third term is particles that are born in cell $i$. The denominator accounts for particles leaving the cell and particles that are absorbed in the cell. This equation, solved alongside the diamond difference relationships in space and angle in Equations \ref{eq:dd_angle} and \ref{eq:dd_space}, is used to solve for the flux in the sphere.
 %
 \begin{equation}\label{eq:dd_angle}
-\psi_{n+1/2,i} = 2\psi_{n,i}-\psi{n-1/2,i}
+\psi_{n+1/2,i} = 2\psi_{n,i}-\psi_{n-1/2,i}
 \end{equation}
 %
 \begin{equation}\label{eq:dd_space}
-\psi_{n,i \pm 1/2} = 2\psi_{n,i}-\psi{n,i\mp1/2}
+\psi_{n,i \pm 1/2} = 2\psi_{n,i}-\psi_{n,i\mp1/2}
 \end{equation}
 
 \section{Algorithms}
@@ -109,7 +109,7 @@ There are three terms in Equation \ref{eq:spatialdd}, each divided by the same d
 The space-angle sweep in curvilinear coordinates is similar to that in Cartesian coordinates. In spherical geometry, the starting angle is radially inward, $\mu = -1$ and starting spatial mesh cell is the outermost cell. Starting with $\psi_{1/2, I+1/2}$, the march proceeds inward (decreasing $i$), sequentially solving for each $\psi_{1/2, i}$ using Equation \ref{eq:starting_flux}. 
 %
 \begin{equation}\label{eq:starting_flux}
-\psi_{1/2, i} = \frac{2\psi{1/2, i+1/2}+\left(\rho_{i+1/2} - \rho{i-1/2}\right)Q_{ni}}{2+\sigma_i\left(\rho_{i+1/2} - \rho{i-1/2}\right)}
+\psi_{1/2, i} = \frac{2\psi_{1/2, i+1/2}+\left(\rho_{i+1/2} - \rho_{i-1/2}\right)Q_{ni}}{2+\sigma_i\left(\rho_{i+1/2} - \rho_{i-1/2}\right)}
 \end{equation}
 %
 Then, the $\psi_{1,i}$ are calculated, again starting from the outermost cell. This goes on until all angular fluxes for $\mu_n<0$, ($n \leq N/2$) are known. Then, the starting fluxes at $i=1/2$ for $n > N/2$ are determined and the process is repeated, except this time with $\mu > 0$. These fluxes are combined according to the quadrature with the fluxes from the inward sweep and are used to update the scattering source for the next iteration. Figure \ref{fig:algorithm} demonstrates the process graphically for $N=4$ \cite{lm}.
@@ -154,7 +154,7 @@ In this section, we will come to the unfortunate realization that the code doesn
 \item Two region bare sphere, inner region has uniform external source 
 \end{enumerate}
 
-The solution to the near-infinite system with uniform, isotropic source is a constant with respect to position and angle: $\phi = S/\sigma$. If the system is large enough, this result should be obtainable by the code. This is also the case used by Lewis and Miller \cite{lm} to refine the angular differencing in the derivation of the discretization. Figure \ref{fig:near_inf_uniform} shows the flux as a function of radius in the sphere with isotropic external source $Q = 40.0$ and total cross section $\sigma = 4.0$. For this figure, Gaussian quadrature of degree $N=4$ is used.
+The solution to the near-infinite system with uniform, isotropic source is a constant with respect to position and angle: $\phi = S/\sigma$. If the system is large enough, this result should be obtainable by the code. This is also the case used by Lewis and Miller \cite{lm} to refine the angular differencing in the derivation of the discretization. Figure \ref{fig:near_inf_uniform} shows the flux as a function of radius in the sphere with isotropic external source $s_o = 40.0$ and total cross section $\sigma = 4.0$. For this figure, Gaussian quadrature of degree $N=4$ is used.
 %
 \begin{figure}
 \centering
@@ -168,10 +168,10 @@ The result shows flux constant across space with the exception of oscillations t
 The second test problem involves introducing scattering. The diffusion solution to this equation is straightforward and is shown in Equation \ref{eq:pt_src_diff}.
 %
 \begin{equation}\label{eq:pt_src_diff}
-\phi(r) = \frac{S*\sinh((R-r)/L)}{4\pi D \sinh(R/L)}
+\phi(r) = \frac{s_o\sinh((R-r)/L)}{4\pi D \sinh(R/L)}
 \end{equation}
 %
-In the transport solution, scattering is expanded in Legendre polynomials according to the $P_N$ method with order $L=4$. A source is placed in the first cell. In the result, plotted in Figure \ref{fig:origin_pt_source}, the degree of Gaussian quadrature is $N=2$ and 20 radial mesh cells of uniform width are used. The diffusion result is plotted in the same figure, according to the equation for flux. Both the diffusion and code solutions used source values of $Q = 10.0$, $\sigma_{tot} = 4.0$, $\sigma_s = 2.0$; the code solution uses 20 uniform radial meshes.
+In the transport solution, scattering is expanded in Legendre polynomials according to the $P_N$ method with order $L=4$. A source is placed in the first cell. In the result, plotted in Figure \ref{fig:origin_pt_source}, the degree of Gaussian quadrature is $N=2$ and 20 radial mesh cells of uniform width are used. The diffusion result is plotted in the same figure, according to the equation for flux. Both the diffusion and code solutions used source values of $s_o = 10.0$, $\sigma_{tot} = 4.0$, $\sigma_s = 2.0$.
 %
 \begin{figure}
 \centering
@@ -195,7 +195,7 @@ Things get worse when assessing the third test problem, a bare sphere with unifo
 \label{fig:uniform_src_comp}
 \end{figure}
 %
-The solution is obtained from the code using 200 uniformly distributed radial meshes, Gaussian quadrature of degree $N=2$ and scattering expansion with $L=4$. The source in both diffusion and code solutions is $Q=0.5$ and cross sections are $\sigma_{tot} = 2.5$, $\sigma_s = 0.5$. Ignoring the behavior at the origin, the code performs reasonably well compared to the diffusion solution. 
+The solution is obtained from the code using 200 uniformly distributed radial meshes, Gaussian quadrature of degree $N=2$ and scattering expansion with $L=4$. The source in both diffusion and code solutions is $s_o=0.5$ and cross sections are $\sigma_{tot} = 2.5$, $\sigma_s = 0.5$. Ignoring the behavior at the origin, the code performs reasonably well compared to the diffusion solution. 
 
 The behavior at the origin is difficult to assess, but we can get better insight into the behavior of the code by examining the angular flux and half-angle fluxes at convergence. Figure  \ref{fig:detailed_flux_break_down} shows the same code solution but includes the angular and half-angle fluxes in the $\pm \mu$ directions. Because $N=2$, the blue dots mark the "starting flux", when $n=1/2$. Based on this half-angle flux, the angular flux represented by the blue line is calculated for $n=1$. Similarly, the red dots mark the half-angle flux where $n=3/2$ and the red line is the angular flux for $n=2$. The green line is the scalar flux. The sharp dip in angular flux for $n=2$ at the origin is due to the difference between the incoming flux at the origin, which converges to 0.2537 in this example, and the low half-angle flux (red dots).
 %
@@ -235,7 +235,7 @@ C_3 = \frac{2 D_1 s_o}{\Sigma_{a,1}}
 \label{eq:two_reg_constants2}
 \end{equation}
 
-The diffusion solution and the code solution are plotted in Figure \ref{fig:refl_soln} for the case where the radius of the core and reflector thickness are $R_1 = 5.0$ and $R_t = 10.0$, respectively. The total and scattering cross sections are set to 2.0 and 1.0, respectively, in the core, and 5.0 and 2.0, respectively, in the reflector. The uniform flux in the core is Q = 0.8. The code solution used quadrature degree $N=2$ and scattering expansion order $L=4$.
+The diffusion solution and the code solution are plotted in Figure \ref{fig:refl_soln} for the case where the radius of the core and reflector thickness are $R_1 = 5.0$ and $R_t = 10.0$, respectively. The total and scattering cross sections are set to 2.0 and 1.0, respectively, in the core, and 5.0 and 2.0, respectively, in the reflector. The uniform flux in the core is $s_o$ = 0.8. The code solution used quadrature degree $N=2$ and scattering expansion order $L=4$.
 %
 \begin{figure}
 \centering
@@ -276,7 +276,7 @@ In curvilinear coordinates, we can attempt to represent angle as a set of discre
 \psi(\rho, \mu_n) \approx \frac{1}{2}\left[\psi(\rho, \mu_{n+1/2})+\psi(\rho, \mu_{n-1/2})\right]
 \end{equation}
 %
-This simple method places too many restrictions on the ordinates for even simple problems. The solution to Equation \ref{eq:conservation_te} for a uniform isotropic source in an infinite medium is just a constant, $\psi = S/\sigma$. In that case, the sum of the two streaming terms in Equation \ref{eq:conservation_te} sould vanish. For this to be true, $\psi(\rho, \mu_{n\pm1/2})=\psi(\rho, \mu_n)=\phi$. Using the approximation in Equation\ref{eq:angular_approx} requires $\mu_n$ to be the average of $\mu_{n+1/2}$ and $\mu_{n-1/2}$. Gauss and double Gauss quadrature do not meet this constrain even when $N=2$. Instead, angular differencing coefficients are introduced into the conservation form of the transport equation in spherical geometry in Equation \ref{eq:conservation_te}. Here, $n$ represents an angle from the quadrature set, and $\psi_n(\rho) = \psi(\rho, \mu_n)$ for $\mu_1 < \mu_2 < \dots < \mu_N$ with $\mu_{1/2} \equiv -1$ and $\mu_{N+1/2} = 1$.
+This simple method places too many restrictions on the ordinates for even simple problems. The solution to Equation \ref{eq:conservation_te} for a uniform isotropic source in an infinite medium is just a constant, $\psi = S/\sigma$. In that case, the sum of the two streaming terms in Equation \ref{eq:conservation_te} sould vanish. For this to be true, $\psi(\rho, \mu_{n\pm1/2})=\psi(\rho, \mu_n)=\phi$. Using the approximation in Equation\ref{eq:angular_approx} requires $\mu_n$ to be the average of $\mu_{n+1/2}$ and $\mu_{n-1/2}$. Gauss and double Gauss quadrature do not meet this constraint even when $N=2$. Instead, angular differencing coefficients are introduced into the conservation form of the transport equation in spherical geometry in Equation \ref{eq:conservation_te}. Here, $n$ represents an angle from the quadrature set, and $\psi_n(\rho) = \psi(\rho, \mu_n)$ for $\mu_1 < \mu_2 < \dots < \mu_N$ with $\mu_{1/2} \equiv -1$ and $\mu_{N+1/2} = 1$.
 %
 \begin{equation}\label{eq:conservation_te_angular_difference}
 \frac{\mu_n}{\rho^2}\frac{\partial}{\partial\rho}\rho^2\psi_n(\rho)+
